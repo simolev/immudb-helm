@@ -31,33 +31,28 @@ spec:
           - "-c"
           - |
             set -x
-#            apk add nmap bind-tools libc6-compat
-#            wget https://github.com/vchain-us/immudb/releases/download/v1.3.0/immuadmin-v1.3.0-linux-amd64 -O immuadmin
-#            wget https://github.com/vchain-us/immudb/releases/download/v1.3.0/immuclient-v1.3.0-linux-amd64 -O immuclient
-#            chmod +x immuadmin
-#            chmod +x immuclient
-#            echo "Number of replicas is $REPLICAS"
-#            echo "My hostname is "$(hostname)
-#            READ=$(hostname | sed 's/[^-\]*$/immudb-read/')
-#            WRITE=$(hostname | sed 's/[^-\]*$/immudb-write/')
-#            echo "Service name for reads is $READ"
-#            echo "Service name for writes is $WRITE"
-#            echo "Pod name is $POD"
-#            timeout 30 sh -c 'until nslookup $0; do echo waiting for service $0; sleep 1; done' $READ
-#            nslookup $READ
-#            nslookup $WRITE
-#            ping $READ -c 10
-#            ping $WRITE -c 10
-#            timeout 30 sh -c 'until nc -z $0 $1; do sleep 1; done' $READ 3322
-#            nmap -p 3322 $READ
-#            nmap -p 3322 $WRITE
-#            echo -n "immudb" | ./immuadmin -a $WRITE login immudb
-#            ./immuadmin -a $WRITE database create replicadb
-#            ./immuadmin -a $WRITE logout
-#            echo -n "immudb" | ./immuadmin -a $READ login immudb
-#            ./immuadmin -a $READ database create --replication-enabled=true --replication-follower-username=immudb --replication-follower-password=immudb --replication-master-address $WRITE --replication-master-database=replicadb replicadb
-#            ./immuadmin -a $READ logout
-#            sleep 30
+            #apk add bind-tools libc6-compat
+            #wget https://github.com/vchain-us/immudb/releases/download/v1.3.0/immuadmin-v1.3.0-linux-amd64 -O immuadmin
+            #chmod +x immuadmin
+            #echo "Number of replicas is $REPLICAS"
+            #echo "My hostname is "$(hostname)
+            #READ=$(hostname | sed 's/[^-\]*$/immudb-read/')
+            #WRITE=$(hostname | sed 's/[^-\]*$/immudb-write/')
+            #echo "Service name for reads is $READ"
+            #echo "Service name for writes is $WRITE"
+            #timeout 30 sh -c 'until nslookup $0; do echo waiting for service $0; sleep 1; done' $WRITE
+            #timeout 30 sh -c 'until nc -z $0 $1; do sleep 1; done' $WRITE 3322
+            #echo -n "immudb" | ./immuadmin -a $WRITE login immudb
+            #./immuadmin -a $WRITE database create replicadb
+            #./immuadmin -a $WRITE logout
+            #for i in $(seq 0 $((REPLICAS-1))); do
+            #  timeout 30 sh -c 'until nslookup $0; do echo waiting for service $0; sleep 1; done' $READ-$i
+            #  timeout 30 sh -c 'until nc -z $0 $1; do sleep 1; done' $READ-$i 8080
+            #  echo -n "immudb" | ./immuadmin -a $READ-$i login immudb
+            #  ./immuadmin -a $READ-$i database create --replication-enabled=true --replication-follower-username=immudb --replication-follower-password=immudb --replication-master-address $WRITE --replication-master-database=replicadb replicadb
+            #  ./immuadmin -a $READ-$i logout
+            #done
+            #sleep 30
         env:
           - name: REPLICAS
             value: "{{ .Values.replicaCount }}"

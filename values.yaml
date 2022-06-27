@@ -14,7 +14,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 volume:
-  class: "nfs-client"
+  class: ""
   size: 5Gi
 adminPassword: ""
 

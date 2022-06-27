@@ -44,6 +44,7 @@ metadata:
   labels:
     {{- include "immudb.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.ports.http }}
       targetPort: http
@@ -55,7 +56,6 @@ spec:
       name: metrics
     - name: grpc
       port: {{ .Values.service.ports.grpc }}
-  clusterIP: None
   selector:
     {{- include "immudb.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/role: read
@@ -67,6 +67,7 @@ metadata:
   labels:
     {{- include "immudb.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.ports.http }}
       targetPort: http
@@ -78,13 +79,13 @@ spec:
       name: metrics
     - name: grpc
       port: {{ .Values.service.ports.grpc }}
-  clusterIP: None
   selector:
     {{- include "immudb.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/role: write
 
     {{- $name := include "immudb.fullname" . -}}
     {{- $labels := include "immudb.labels" . | nindent 4 -}}
+    {{- $type := .Values.service.type -}}
     {{- $httpPort := .Values.service.ports.http -}}
     {{- $metricsPort := .Values.service.ports.metrics -}}
     {{- $grpcPort := .Values.service.ports.grpc -}}
@@ -98,6 +99,7 @@ metadata:
   name: {{ $name }}-read-{{ $index0 }}
   labels:    {{ $labels }}
 spec:
+  type: {{ $type }}
   ports:
     - port: {{ $httpPort }}
       targetPort: http
@@ -109,7 +111,6 @@ spec:
       name: metrics
     - name: grpc
       port: {{ $grpcPort }}
-  clusterIP: None
   selector:    {{ $selectorLabels }}
     app.kubernetes.io/role: read
     statefulset.kubernetes.io/pod-name: {{ $name }}-read-{{ $index0 }}
