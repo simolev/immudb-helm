@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "immudb.fullname" . }}
+  labels:
+    {{- include "immudb.labels" . | nindent 4 }}
+    app.kubernetes.io/monitor: immudb-monitor
+spec:
+  selector:
+    matchLabels:
+      {{- include "immudb.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/monitor: immudb-monitor
+  endpoints:
+    - port: metrics

@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "immudb.fullname" . }}-write
+  labels:
+    {{- include "immudb.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/role: write
+      {{- include "immudb.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "immudb.fullname" . }}    
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/role: write
+        {{- include "immudb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      - name: immudb-storage
+        persistentVolumeClaim:
+          claimName: {{ include "immudb.fullname" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 3322
+              protocol: TCP
+            - name: metrics
+              containerPort: 9497
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+            failureThreshold: 9
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+          {{- if $.Values.adminPassword }}
+          env:
+          - name: IMMUDB_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "immudb.fullname" . }}-credentials
+                key: immudb-admin-password
+          {{- end}}      
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /var/lib/immudb
+            name: immudb-storage
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: immudb-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      {{- if .Values.volume.Class }}
+      storageClassName: {{ .Values.volume.Class | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.volume.size }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "immudb.fullname" . }}-read
+  labels:
+    {{- include "immudb.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/role: read
+      {{- include "immudb.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "immudb.fullname" . }}    
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/role: read
+        {{- include "immudb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      - name: immudb-storage
+        persistentVolumeClaim:
+          claimName: {{ include "immudb.fullname" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 3322
+              protocol: TCP
+            - name: metrics
+              containerPort: 9497
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+            failureThreshold: 9
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+          env:
+            - name: IMMUDB_REPLICATION_ENABLED
+              value: "true"
+            - name: IMMUDB_REPLICATION_MASTER_ADDRESS
+              value: {{ include "immudb.fullname" . }}-write
+            - name: IMMUDB_REPLICATION_FOLLOWER_USERNAME
+              value: "immudb"
+            - name: IMMUDB_REPLICATION_FOLLOWER_PASSWORD
+              value: "immudb"
+          {{- if $.Values.adminPassword }}
+          - name: IMMUDB_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "immudb.fullname" . }}-credentials
+                key: immudb-admin-password
+          {{- end}}      
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /var/lib/immudb
+            name: immudb-storage
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: immudb-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      {{- if .Values.volume.Class }}
+      storageClassName: {{ .Values.volume.Class | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.volume.size }}
