@@ -1,7 +1,16 @@
 {{- if .Values.ingress.enabled }}
-The web interface is at this address:
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.hostname }}/
-  
+The web interface of the writer node can be reached at this address:
+  http{{ if $.Values.ingress.tls }}s{{ end }}://immudb-write.{{ .Values.ingress.hostname }}/
+The read/write database endpoint is at immudb-write.{{ .Values.ingress.hostname }} on port 3322.
+{{ if .Values.replicaCount }}
+These are the addresses of the replica nodes' web interfaces:
+    {{- $hostname := .Values.ingress.hostname -}}
+    {{- $replicaCount := .Values.replicaCount | int -}}
+    {{- range $index0 := until $replicaCount }}
+  https://immudb-read-{{ $index0 }}.{{ $hostname }}/
+    {{- end }}
+The database endpoint for reads is at immudb-read.{{ .Values.ingress.hostname }} on port 3323.
+{{ end }}
 You can also access immudb web console and grpc interface by running these commands
 {{- else }}
 You can access immudb web console and grpc interface by running these commands

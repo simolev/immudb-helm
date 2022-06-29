@@ -6,7 +6,7 @@ metadata:
     kubernetes.io/ingress.class: "public"
 spec:
   rules:
-  - host: immudb-write.levy.it
+  - host: immudb-write.{{ .Values.ingress.hostname }}
     http:
       paths:
       - path: /
@@ -23,7 +23,7 @@ spec:
             name: {{ include "immudb.fullname" . }}-write
             port:
               number: 9497
-  - host: immudb-read.levy.it
+  - host: immudb-read.{{ .Values.ingress.hostname }}
     http:
       paths:
       - path: /
@@ -40,10 +40,11 @@ spec:
             name: {{ include "immudb.fullname" . }}-read
             port:
               number: 9497
+    {{- $hostname := .Values.ingress.hostname -}}
     {{- $name := include "immudb.fullname" . -}}
     {{- $replicaCount := .Values.replicaCount | int -}}
     {{ range $index0 := until $replicaCount }}
-  - host: immudb-read-{{ $index0 }}.levy.it
+  - host: immudb-read-{{ $index0 }}.{{ $hostname }}
     http:
       paths:
       - path: /

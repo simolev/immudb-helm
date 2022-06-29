@@ -14,7 +14,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 volume:
-  class: ""
+  class: "nfs-client"
   size: 5Gi
 adminPassword: ""
 
@@ -40,14 +40,14 @@ service:
     http: 8080
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hostname: immudb-example.localhost
   tls:
-    enabled: false
+    enabled: true
     secretName: immudb-tls
 
 resources: {}
